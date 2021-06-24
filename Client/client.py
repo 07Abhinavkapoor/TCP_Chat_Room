@@ -1,4 +1,5 @@
 import socket
+import threading
 
 
 class Client:
@@ -7,13 +8,24 @@ class Client:
         self.client.connect(("127.0.0.1", 48_531))
         self.start()
 
-    def start(self):
+    def receive(self):
         while True:
             message = self.client.recv(1024).decode("ascii")
             if len(message) == 0:
                 self.client.close()
                 break
             print(message)
+
+    def send(self):
+        while True:
+            message = input()
+            self.client.send(message.encode("ascii"))
+
+    def start(self):
+        receive_thread = threading.Thread(target=self.receive)
+        send_thread = threading.Thread(target=self.send)
+        receive_thread.start()
+        send_thread.start()
 
 
 if __name__ == "__main__":
