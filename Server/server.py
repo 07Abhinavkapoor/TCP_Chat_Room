@@ -1,11 +1,15 @@
 import socket
 import threading
+import json
+from pathlib import Path
 
 
 class Server:
     def __init__(self):
+        self.keywords = json.loads(Path("keywords.json").read_text())
         self.initialise_server()
         self.clients = []
+        self.nicknames = []
         self.receive_and_accept()
 
     def initialise_server(self):
@@ -19,13 +23,13 @@ class Server:
         for client in self.clients:
             client.send(message)
 
-    def handle(self, client, address):
+    def handle(self, client, address, nickname):
         while True:
-            message = client.recv(1024)
+            message = client.recv(1024).decode("ascii")
 
             if len(message) == 0:
                 self.close_connection(client)
-                print(f"{address} is disconnected...")
+                print(f"{address} i.e {nickname} is disconnected...")
                 break
 
             self.broadcast(message)
@@ -33,11 +37,26 @@ class Server:
     def receive_and_accept(self):
         while True:
             client, address = self.server.accept()
-            print(f"{address} is connnected")
+
+            client.send(self.keywords["nickname"].encode("ascii"))
+            nickname = client.recv(1024).decode("ascii")
+            nickname = self.validate_nickname(nickname, client)
+
+            print(f"{address} is connnected as {nickname}")
             self.clients.append(client)
+            self.nicknames.append(nickname)
+
             thread = threading.Thread(
-                target=self.handle, args=(client, address))
+                target=self.handle, args=(client, address, nickname))
             thread.start()
+
+    def validate_nickname(self, nickname, client):
+        while nickname in self.nicknames:
+            client.send(
+                "Nickname not available. \nChoose another nickname:".encode("ascii"))
+            nickname = client.recv(1024).decode("ascii")
+
+        return nickname
 
     def close_connection(self, client):
         self.clients.remove(client)
