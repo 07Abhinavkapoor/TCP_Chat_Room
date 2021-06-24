@@ -22,10 +22,12 @@ class Server:
     def handle(self, client, address):
         while True:
             message = client.recv(1024)
+
             if len(message) == 0:
                 self.close_connection(client)
                 print(f"{address} is disconnected...")
                 break
+
             self.broadcast(message)
 
     def receive_and_accept(self):
@@ -35,6 +37,11 @@ class Server:
             self.clients.append(client)
             thread = threading.Thread(
                 target=self.handle, args=(client, address))
+            thread.start()
+
+    def close_connection(self, client):
+        self.clients.remove(client)
+        self.broadcast(f"{client} left the room...".encode("ascii"))
 
 
 if __name__ == "__main__":
