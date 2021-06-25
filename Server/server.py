@@ -28,11 +28,11 @@ class Server:
             message = client.recv(1024).decode("ascii")
 
             if len(message) == 0:
-                self.close_connection(client)
+                self.close_connection(client, nickname)
                 print(f"{address} i.e {nickname} is disconnected...")
                 break
 
-            self.broadcast(message)
+            self.broadcast(message.encode("ascii"))
 
     def receive_and_accept(self):
         while True:
@@ -43,6 +43,8 @@ class Server:
             nickname = self.validate_nickname(nickname, client)
 
             print(f"{address} is connnected as {nickname}")
+            client.send("Connected.....".encode("ascii"))
+            self.broadcast(f"{nickname} joined the room....".encode("ascii"))
             self.clients.append(client)
             self.nicknames.append(nickname)
 
@@ -53,14 +55,16 @@ class Server:
     def validate_nickname(self, nickname, client):
         while nickname in self.nicknames:
             client.send(
-                "Nickname not available. \nChoose another nickname:".encode("ascii"))
+                "Nickname not available. \nChoose another nickname.".encode("ascii"))
             nickname = client.recv(1024).decode("ascii")
 
+        client.send(self.keywords["green_signal"].encode("ascii"))
         return nickname
 
-    def close_connection(self, client):
+    def close_connection(self, client, nickname):
         self.clients.remove(client)
-        self.broadcast(f"{client} left the room...".encode("ascii"))
+        self.nicknames.remove(nickname)
+        self.broadcast(f"{nickname} left the room...".encode("ascii"))
 
 
 if __name__ == "__main__":
