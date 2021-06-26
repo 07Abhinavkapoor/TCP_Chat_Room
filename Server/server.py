@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+import colors
 from pathlib import Path
 
 
@@ -15,9 +16,9 @@ class Server:
     def initialise_server(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(("127.0.0.1", 48_531))
-        print("Server Initialised ........")
+        print(colors.colorise("Server Initialised ........", colors.CYAN))
         self.server.listen()
-        print("Listening .......")
+        print(colors.colorise("Listening .......", colors.CYAN))
 
     def broadcast(self, message):
         for client in self.clients:
@@ -29,7 +30,8 @@ class Server:
 
             if len(message) == 0:
                 self.close_connection(client, nickname)
-                print(f"{address} i.e {nickname} is disconnected...")
+                print(
+                    f"{address} i.e {colors.colorise(nickname, colors.RED)} is disconnected...")
                 break
 
             self.broadcast(message.encode("ascii"))
@@ -42,9 +44,12 @@ class Server:
             nickname = client.recv(1024).decode("ascii")
             nickname = self.validate_nickname(nickname, client)
 
-            print(f"{address} is connnected as {nickname}")
-            client.send("Connected.....".encode("ascii"))
-            self.broadcast(f"{nickname} joined the room....".encode("ascii"))
+            print(
+                f"{address} is connnected as {colors.colorise(nickname, colors.GREEN)}")
+            client.send(colors.colorise("Connected.....",
+                        colors.GREEN).encode("ascii"))
+            self.broadcast(
+                f"{colors.colorise(nickname, colors.PURPLE)} joined the room....".encode("ascii"))
             self.clients.append(client)
             self.nicknames.append(nickname)
 
@@ -55,7 +60,7 @@ class Server:
     def validate_nickname(self, nickname, client):
         while nickname in self.nicknames:
             client.send(
-                "Nickname not available. \nChoose another nickname.".encode("ascii"))
+                colors.colorise("Nickname not available. \nChoose another nickname.", colors.RED).encode("ascii"))
             nickname = client.recv(1024).decode("ascii")
 
         client.send(self.keywords["green_signal"].encode("ascii"))
@@ -64,7 +69,8 @@ class Server:
     def close_connection(self, client, nickname):
         self.clients.remove(client)
         self.nicknames.remove(nickname)
-        self.broadcast(f"{nickname} left the room...".encode("ascii"))
+        self.broadcast(
+            f"{colors.colorise(nickname, colors.RED)} left the room...".encode("ascii"))
 
 
 if __name__ == "__main__":
