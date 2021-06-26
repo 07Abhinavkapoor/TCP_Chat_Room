@@ -2,6 +2,7 @@ import socket
 import threading
 import json
 import colors
+import time
 from pathlib import Path
 
 
@@ -14,24 +15,30 @@ class Server:
         self.receive_and_accept()
 
     def initialise_server(self):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind(("127.0.0.1", 48_531))
-        print(colors.colorise("Server Initialised ........", colors.CYAN))
-        self.server.listen()
-        print(colors.colorise("Listening .......", colors.CYAN))
+        try:
+            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server.bind(("127.0.0.1", 48_531))
+            print(colors.colorise("Server Initialised ........", colors.CYAN))
+            self.server.listen()
+            print(colors.colorise("Listening .......", colors.CYAN))
+        except:
+            self.initialise_server()
 
     def broadcast(self, message):
         for client in self.clients:
-            client.send(message)
+            try:
+                client.send(message)
+            except:
+                nickname = self.clients.index(client)
+                nickname = self.nicknames[nickname]
+                self.close_connection(client, nickname)
 
     def handle(self, client, address, nickname):
         while True:
             message = client.recv(1024).decode("ascii")
 
             if len(message) == 0:
-                self.close_connection(client, nickname)
-                print(
-                    f"{address} i.e {colors.colorise(nickname, colors.RED)} is disconnected...")
+                self.close_connection(client, address, nickname)
                 break
 
             self.broadcast(message.encode("ascii"))
@@ -64,13 +71,16 @@ class Server:
             nickname = client.recv(1024).decode("ascii")
 
         client.send(self.keywords["green_signal"].encode("ascii"))
+        time.sleep(0.3)
         return nickname
 
-    def close_connection(self, client, nickname):
+    def close_connection(self, client, address, nickname):
         self.clients.remove(client)
         self.nicknames.remove(nickname)
         self.broadcast(
             f"{colors.colorise(nickname, colors.RED)} left the room...".encode("ascii"))
+        print(
+            f"{address} i.e {colors.colorise(nickname, colors.RED)} is disconnected...")
 
 
 if __name__ == "__main__":
