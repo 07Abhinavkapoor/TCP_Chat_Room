@@ -46,7 +46,11 @@ class Client:
         self.event.wait()
 
         while True:
-            message = f"{self.nickname} - {input()}"
+            text = input()
+            if text == "":
+                continue
+
+            message = f"{self.nickname} - {text}"
             self.client.send(message.encode("ascii"))
 
     def start(self):
