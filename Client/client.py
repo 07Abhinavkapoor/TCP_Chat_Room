@@ -1,6 +1,8 @@
 import socket
 import threading
 import json
+import colors
+import random
 from pathlib import Path
 
 
@@ -9,6 +11,7 @@ class Client:
         self.keywords = json.loads(Path("keywords.json").read_text())
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect(("127.0.0.1", 48_531))
+        self.color = random.randint(0, 4)
         self.start()
 
     def get_nickname(self):
@@ -34,10 +37,12 @@ class Client:
         self.get_nickname()
         self.client.send(self.nickname.encode("ascii"))
         message = self.client.recv(1024).decode("ascii")
+
         if len(message) == 0:
             self.client.close()
         elif message == self.keywords["green_signal"]:
             self.event.set()
+            self.nickname = colors.colorise(self.nickname, self.color)
         else:
             print(message)
             self.set_up_profile()
