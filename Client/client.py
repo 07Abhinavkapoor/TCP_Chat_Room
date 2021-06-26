@@ -18,14 +18,17 @@ class Client:
     def receive(self):
 
         while True:
-            message = self.client.recv(1024).decode("ascii")
-            if len(message) == 0:
-                self.client.close()
+            try:
+                message = self.client.recv(1024).decode("ascii")
+                if len(message) == 0:
+                    self.client.close()
+                    break
+                elif message == self.keywords["nickname"]:
+                    self.set_up_profile()
+                else:
+                    print(message)
+            except:
                 break
-            elif message == self.keywords["nickname"]:
-                self.set_up_profile()
-            else:
-                print(message)
 
     def set_up_profile(self):
         self.get_nickname()
