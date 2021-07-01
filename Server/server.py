@@ -12,6 +12,7 @@ class Server:
         self.initialise_server()
         self.clients = []
         self.nicknames = []
+        self.password = "12345"
         self.receive_and_accept()
 
     def initialise_server(self):
@@ -46,10 +47,14 @@ class Server:
     def receive_and_accept(self):
         while True:
             client, address = self.server.accept()
-
             client.send(self.keywords["nickname"].encode("ascii"))
             nickname = client.recv(1024).decode("ascii")
             nickname = self.validate_nickname(nickname, client)
+
+            if not self.verify(client):
+                print(colors.colorise(
+                    "Verification Failed: ", colors.RED) + nickname)
+                self.close_connection(client, address, nickname)
 
             print(
                 f"{address} is connnected as {colors.colorise(nickname, colors.GREEN)}")
@@ -63,6 +68,17 @@ class Server:
             thread = threading.Thread(
                 target=self.handle, args=(client, address, nickname))
             thread.start()
+
+    def verify(self, client):
+        try:
+            while True:
+                client.send(self.keywords["password"].encode("ascii"))
+                password = client.recv(1024).decode("ascii")
+                if(password == self.password):
+                    break
+            return True
+        except:
+            return False
 
     def validate_nickname(self, nickname, client):
         while nickname in self.nicknames:
