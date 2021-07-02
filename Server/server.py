@@ -54,8 +54,8 @@ class Server:
             client.send(self.keywords["password"].encode("ascii"))
             if not self.verify(client):
                 print(colors.colorise(
-                    "Verification Failed: ", colors.RED) + nickname)
-                self.close_connection(client, address, nickname)
+                    "Verification Failed: ", colors.RED) + f"{address} - {nickname}")
+                continue
 
             print(
                 f"{address} is connnected as {colors.colorise(nickname, colors.GREEN)}")
@@ -78,7 +78,7 @@ class Server:
                     break
                 else:
                     client.send(colors.colorise(
-                        "Invalid password.\nTry Again", colors.RED))
+                        "Invalid password.\nTry Again", colors.RED).encode("ascii"))
 
             client.send(self.keywords["green_signal"].encode("ascii"))
             time.sleep(0.3)
