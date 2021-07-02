@@ -51,6 +51,7 @@ class Server:
             nickname = client.recv(1024).decode("ascii")
             nickname = self.validate_nickname(nickname, client)
 
+            client.send(self.keywords["password"].encode("ascii"))
             if not self.verify(client):
                 print(colors.colorise(
                     "Verification Failed: ", colors.RED) + nickname)
@@ -72,10 +73,15 @@ class Server:
     def verify(self, client):
         try:
             while True:
-                client.send(self.keywords["password"].encode("ascii"))
                 password = client.recv(1024).decode("ascii")
                 if(password == self.password):
                     break
+                else:
+                    client.send(colors.colorise(
+                        "Invalid password.\nTry Again", colors.RED))
+
+            client.send(self.keywords["green_signal"].encode("ascii"))
+            time.sleep(0.3)
             return True
         except:
             return False
