@@ -28,10 +28,25 @@ class Client:
                     break
                 elif message == self.keywords["nickname"]:
                     self.set_up_profile()
+                elif message == self.keywords["password"]:
+                    self.validate()
                 else:
                     print(message)
             except:
                 break
+
+    def validate(self):
+        print("Enter password to enter the room...")
+        self.client.send(input().encode("ascii"))
+        message = self.client.recv(1024).decode("ascii")
+
+        if len(message) == 0:
+            self.client.close()
+        elif message == self.keywords["green_signal"]:
+            self.event.set()
+        else:
+            print(message)
+            self.validate()
 
     def set_up_profile(self):
         self.get_nickname()
@@ -41,7 +56,6 @@ class Client:
         if len(message) == 0:
             self.client.close()
         elif message == self.keywords["green_signal"]:
-            self.event.set()
             self.nickname = colors.colorise(self.nickname, self.color)
         else:
             print(message)
